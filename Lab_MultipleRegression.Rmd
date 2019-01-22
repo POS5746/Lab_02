@@ -1,17 +1,19 @@
 ---
 title: "Lab 2 - Multiple Regression"
+output:
+  pdf_document: default
+  html_document: default
 date: "1/21/2019"
-output: html_document
 ---
 
 Linear regression is one of the most commonly used predictive modelling techniques. The aim of linear regression is to find a mathematical equation for a continuous response variable Y (can be dichotomous) as a function of one or more explanatory X variable(s).
 
 This mathematical equation can be generalised as follows:
 
-$$Y = \beta_{0} + \beta_{1} X_{1} + \beta_{2} X_{2} + \epsilon$$
+$$Y = \beta_{0} + \beta_{1} X_{1} + \beta_{2} X_{2} + \epsilon $$
 where, $\beta_{0}$ is the intercept and the $\beta_{i}$'s are slope coefficients.
 
-Collectively, they are called regression coefficients and ϵ is the error term, the part of Y the regression model is unable to explain.
+Collectively, they are called regression coefficients and $\epsilon$ is the error term, the part of Y the regression model is unable to explain.
 
 For this analysis, we will use the `mtcars` dataset that comes with R by default.
 
@@ -79,15 +81,15 @@ polygon(density(raw_df$hp), col="red")
 ```
 
 ### Correlation Analysis
-Correlation analysis studies the strength of the relationship between two continuous variables. More specifically, it is a statistical measure that shows the degree of linear dependence between two variables. Correlation coefficients can take values anywhere between -1 to +1.
+Correlation analysis studies the strength of the relationship between two continuous variables. More specifically, it is a statistical measure that shows the degree of linear dependence between two variables. Correlation coefficients can take values anywhere between $-1$ to $+1$.
 
-If one variable consistently increases with increasing values of the other, then they have a strong positive correlation (value close to +1). Similarly, if one consistently decreases when the other increases, they have a strong negative correlation (value close to -1). A value closer to 0 suggests a weak relationship between the variables.
+If one variable consistently increases with increasing values of the other, then they have a strong positive correlation (value close to $+1$). Similarly, if one consistently decreases when the other increases, they have a strong negative correlation (value close to $-1$). A value closer to 0 suggests a weak relationship between the variables.
 
 > However, correlation does not imply causation.
 
 In other words, if two variables are highly correlated, it does not mean one variable ’causes’ the value of the other variable to increase.
 
-To compute in R we simply use the cor() function with the two numeric variables as arguments.
+To compute in R we simply use the `cor()` function with the two numeric variables as arguments.
 
 ```{r echo = TRUE}
 cor(raw_df$mpg, raw_df$wt)
@@ -107,9 +109,9 @@ print(linearMod)
 
 By building the linear regression model, we have established the relationship between the predictors and response in the form of a mathematical formula. That is, fuel economy (mpg) as a function of curb weight (wt) and horsepower (hp).
 
-For the above output, you can notice the ‘Coefficients’ column having three components: Intercept: 37.227, weight: -3.878, horsepower: -0.032 In other words,
+For the above output, you can notice the ‘Coefficients’ column having three components: Intercept: $37.227$, weight: $-3.878$, horsepower: $-0.032$ In other words,
 
-$$mpg=\beta_{0}+\beta_{1}wt+\beta_{2}hp => mpg = 37.23 - 3.88∗wt - 0.03*hp$$
+$$mpg=\beta_{0}+\beta_{1}wt+\beta_{2}hp => mpg = 37.23-3.88wt-0.03hp$$
 
 ### Linear Regression Diagnostics
 Lets begin by printing the summary statistics for linearMod.
@@ -120,7 +122,7 @@ summary(linearMod)  # model summary
 #### Calculating the t Statistic and p-Values
 When the model coefficients and standard errors are known, the formula for calculating the t-Statistic is as follows:
 
-$$t−Statistic = {β−coefficient \over Std.Error}$$
+$$t-Statistic = {\beta-coefficient \over Std.Error}$$
 
 In case you want to compute some of the statistics by manual code, the below snippet shows how.
 
@@ -149,13 +151,13 @@ f_statistic <- modelSummary$fstatistic[1]  # fstatistic
 ### R-Squared and Adj R-Squared
 The R-Squared tells us the proportion of variation in the dependent (response) variable that has been explained by our model.
 
-$$ R^{2} = 1 – \frac{RSS}{TSS}$$
+$$ R^{2} = 1-\frac{RSS}{TSS}$$
 
 where, RSS is the Residual Sum of Squares given by
 
-$$RSS = \sum_{i}^{n} \left( y_{i} – \hat{y_{i}} \right) ^{2}$$
+$$RSS = \sum_{i}^{n} \left( y_{i}-\hat{y_{i}} \right) ^{2}$$
 and the Sum of Squared Total is given by
-$$TSS = \sum_{i}^{n} \left( y_{i} – \bar{y} \right) ^{2}$$
+$$TSS = \sum_{i}^{n} \left( y_{i}-\bar{y} \right) ^{2}$$
 
 Here, y-hat is the fitted value for observation i and y-bar is the mean of Y.
 
