@@ -1,0 +1,216 @@
+---
+title: "Lab 2 - Multiple Regression"
+date: "1/21/2019"
+output: html_document
+---
+
+Linear regression is one of the most commonly used predictive modelling techniques. The aim of linear regression is to find a mathematical equation for a continuous response variable Y (can be dichotomous) as a function of one or more explanatory X variable(s).
+
+This mathematical equation can be generalised as follows:
+
+$$Y = \beta_{0} + \beta_{1} X_{1} + \beta_{2} X_{2} + \epsilon$$
+where, $\beta_{0}$ is the intercept and the $\beta_{i}$'s are slope coefficients.
+
+Collectively, they are called regression coefficients and ϵ is the error term, the part of Y the regression model is unable to explain.
+
+For this analysis, we will use the `mtcars` dataset that comes with R by default.
+
+You can access this dataset by typing in `mtcars` in your R console. For this exerciese we will want to load it into our environment and save it as a discrete object. We can get a glimpse of the data before loading it in.
+
+```{r echo = TRUE}
+head(mtcars)  # display the first 6 observations
+```
+
+We can now proceed to load it in:
+```{r echo=TRUE}
+raw_df <- data.frame(mtcars)
+```
+
+The goal here is to establish a mathematical equation for fuel economy as a function of a car's curb weight and its horsepower rating. Deciding what variables are in our equations should be informed by theory. For this example, we want to estimate `mpg` as a function of `wt` and `hp`. Why? Well we expect that a car's curb weight and its horsepower rating (how much power an engine has) impact its fuel economy.
+
+But before we begin building the regression model, it is a good practice to analyse and understand the variables. The graphical analysis and correlation study below will help with this.
+
+Typically, for each of the predictors, the following plots help visualise the patterns:
+
+* Scatter plot: Visualise the linear relationship (if any) between the predictor and response variable.
+
+* Box plot: To spot any outlier observations in the variable. Having outliers in your predictor can drastically affect the predictions as they can affect the direction/slope of the line of best fit.
+
+* Density plot: To see the distribution of the predictor variable. 
+
+### Scatter Plots
+Scatter plots can help visualise linear relationships between the response and predictor variables. Ideally, if you have many predictor variables, a scatter plot is drawn for each one of them against the response, along with the line of best fit as seen below.
+
+```{r echo = TRUE}
+scatter.smooth(x=raw_df$wt, y=raw_df$mpg, main="mpg ~ weight")  # scatterplot
+scatter.smooth(x=raw_df$hp, y=raw_df$mpg, main="mpg~hp")
+```
+
+The scatter plot along with the smoothing line above suggests a (mostly) linear and negative relationship between fuel economy and a car's weight, on the one hand, and fuel economy and horsepower, on the other. This is a good thing because one of the underlying assumptions of linear regression is that the relationship between the response and predictor variables is linear and additive.
+
+### Box Plot
+Generally, an outlier is any datapoint that lies outside the 1.5 * inter quartile range (IQR). The IQR is calculated as the distance between the 25th percentile and 75th percentile values for that variable.
+
+```{r echo = TRUE}
+
+par(mfrow = c(1, 3))
+
+boxplot(raw_df$wt, main="Weight", sub=paste("Outlier rows: ", boxplot.stats(cars$speed)$out))  # box plot for 'weight'
+
+boxplot(raw_df$hp, main="Horsepower", sub=paste("Outlier rows: ", boxplot.stats(cars$dist)$out))  # box plot for 'hp'
+
+boxplot(raw_df$mpg, main="Fuel Economy", sub=paste("Outlier rows: ", boxplot.stats(cars$dist)$out))  # box plot for 'mpg'
+```
+
+### Density Plot
+
+```{r echo=TRUE}
+library(e1071)  # for skewness function
+
+plot(density(raw_df$mpg), main="Density Plot: Fuel Economy", ylab="Frequency", sub=paste("Skewness:", round(e1071::skewness(raw_df$mpg), 2)))  # density plot for 'mpg'
+polygon(density(raw_df$mpg), col="red")
+
+plot(density(raw_df$wt), main="Density Plot: Weight", ylab="Frequency", sub=paste("Skewness:", round(e1071::skewness(raw_df$wt), 2)))  # density plot for 'wt'
+polygon(density(raw_df$wt), col="red")
+
+plot(density(raw_df$hp), main="Density Plot: Horsepower", ylab="Frequency", sub=paste("Skewness:", round(e1071::skewness(raw_df$hp), 2)))  # density plot for 'hp'
+polygon(density(raw_df$hp), col="red")
+
+```
+
+### Correlation Analysis
+Correlation analysis studies the strength of the relationship between two continuous variables. More specifically, it is a statistical measure that shows the degree of linear dependence between two variables. Correlation coefficients can take values anywhere between -1 to +1.
+
+If one variable consistently increases with increasing values of the other, then they have a strong positive correlation (value close to +1). Similarly, if one consistently decreases when the other increases, they have a strong negative correlation (value close to -1). A value closer to 0 suggests a weak relationship between the variables.
+
+> However, correlation does not imply causation.
+
+In other words, if two variables are highly correlated, it does not mean one variable ’causes’ the value of the other variable to increase.
+
+To compute in R we simply use the cor() function with the two numeric variables as arguments.
+
+```{r echo = TRUE}
+cor(raw_df$mpg, raw_df$wt)
+cor(raw_df$mpg, raw_df$hp) 
+```
+
+### Building the Linear Regression Model
+
+The lm() function takes in two main arguments: `Formula` and    `Data`.
+
+The data is typically a `data.frame` object and the formula is an object of class `formula`.
+
+```{r echo=TRUE}
+linearMod <- lm(mpg ~ wt + hp, data=raw_df)  # build linear regression model on full data
+print(linearMod)
+```
+
+By building the linear regression model, we have established the relationship between the predictors and response in the form of a mathematical formula. That is, fuel economy (mpg) as a function of curb weight (wt) and horsepower (hp).
+
+For the above output, you can notice the ‘Coefficients’ column having three components: Intercept: 37.227, weight: -3.878, horsepower: -0.032 In other words,
+
+$$mpg=\beta_{0}+\beta_{1}wt+\beta_{2}hp => mpg = 37.23 - 3.88∗wt - 0.03*hp$$
+
+### Linear Regression Diagnostics
+Lets begin by printing the summary statistics for linearMod.
+```{r echo=TRUE}
+summary(linearMod)  # model summary
+```
+
+#### Calculating the t Statistic and p-Values
+When the model coefficients and standard errors are known, the formula for calculating the t-Statistic is as follows:
+
+$$t−Statistic = {β−coefficient \over Std.Error}$$
+
+In case you want to compute some of the statistics by manual code, the below snippet shows how.
+
+```{r echo = TRUE}
+modelSummary <- summary(linearMod)  # capture model summary as an object
+
+modelCoeffs <- modelSummary$coefficients  # model coefficients
+
+beta_wt <- modelCoeffs["wt", "Estimate"] # get beta estimate for weight
+se_wt <- modelCoeffs["wt", "Std. Error"]  # get std.error for weight  
+
+beta_hp <- modelCoeffs["hp", "Estimate"] # get beta estimate for horsepower
+se_hp <- modelCoeffs["hp", "Std. Error"]  # get std.error for horsepower
+
+t_wt <- beta_wt/se_wt  # calc t statistic
+t_hp <- beta_hp/se_hp
+
+p_wt <- 2*pt(-abs(t_wt), df=nrow(raw_df)- 1)  # calc p Value
+p_hp <- 2*pt(-abs(t_hp), df=nrow(raw_df)- 1)  # calc p Value
+
+f <- summary(linearMod)$fstatistic 
+f_statistic <- modelSummary$fstatistic[1]  # fstatistic
+
+```
+
+### R-Squared and Adj R-Squared
+The R-Squared tells us the proportion of variation in the dependent (response) variable that has been explained by our model.
+
+$$ R^{2} = 1 – \frac{RSS}{TSS}$$
+
+where, RSS is the Residual Sum of Squares given by
+
+$$RSS = \sum_{i}^{n} \left( y_{i} – \hat{y_{i}} \right) ^{2}$$
+and the Sum of Squared Total is given by
+$$TSS = \sum_{i}^{n} \left( y_{i} – \bar{y} \right) ^{2}$$
+
+Here, y-hat is the fitted value for observation i and y-bar is the mean of Y.
+
+We don’t necessarily discard a model based on a low R-Squared value.
+
+As you add more X variables to your model, the R-Squared value of the more complicated model will always be greater than that of the simpler one. Therefore, whatever new variable you add can only add to the variation that was already explained.
+
+Adjusted R-Squared is formulated such that it penalises the number of terms (read predictors) in your model. Therefore, when comparing nested models, it is a good practice to compare using the adj-R-squared rather than just R-squared.
+
+### Predicting Linear Models
+So far you have seen how to build a linear regression model using the whole dataset. If you build it that way, there is no way to tell how the model will perform with new data.
+
+One way to test how well our model performs is to split our dataset into a 80:20 sample (training:test), then, build the model on the 80% sample and then use the model thus built to predict the dependent variable on test data.
+
+Doing it this way, we will have the model predicted values for the 20% data (test) as well as the actuals (from the original dataset).
+
+By calculating accuracy measures (like min_max accuracy) and error rates (MAPE or MSE), you can find out the prediction accuracy of the model.
+
+Now, lets see how to actually do this.
+
+* Step 1: Create the training and test data
+This can be done using the sample() function. Just make sure you set the seed using set.seed() so the samples can be recreated for future use.
+
+``` {r echo = TRUE}
+# Create Training and Test data 
+set.seed(1)  # setting seed to reproduce results of random sampling
+trainingRowIndex <- sample(1:nrow(raw_df), 0.8*nrow(raw_df))  # row indices for training data
+trainingData <- raw_df[trainingRowIndex, ]  # model training data
+testData  <- raw_df[-trainingRowIndex, ]   # test data
+```
+
+* Step 2: Fit the model on training data and predict dist on test data
+``` {r echo = TRUE}
+# Build the model on training data
+lmMod <- lm(mpg ~ wt + hp, data=trainingData)  # build the model
+distPred <- predict(lmMod, testData)  # predict distance
+```
+
+* Step 3: Review diagnostic measures.
+``` {r echo = TRUE}
+summary(lmMod)  # model summary
+```
+
+* Step 4: Calculate prediction accuracy and error rates
+A simple correlation between the actuals and predicted values can be used as a form of accuracy measure.
+
+A higher correlation accuracy implies that the actuals and predicted values have similar directional movement, i.e. when the actuals values increase the predicted values also increase and vice-versa.
+
+``` {r echo = TRUE}
+actuals_preds <- data.frame(cbind(actuals=testData$dist, predicteds=distPred))  # make actuals_predicteds dataframe
+correlation_accuracy <- cor(actuals_preds)  # 82.7%
+head(actuals_preds)
+```
+
+
+
+
+
